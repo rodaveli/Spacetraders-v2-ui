@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Header, AlertDialog } from '@/components/ui/alert';
 import { getAgentData, getContracts, getServerStatus, getShips } from './utils/api';
 import Dashboard from './components/Dashboard';
 import FleetManagement from './components/FleetManagement';
@@ -55,9 +54,9 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <Header className="bg-blue-600 text-white p-4">
+      <div className="bg-blue-600 text-white p-4">
         <h1 className="text-2xl font-bold">SpaceTraders Management System</h1>
-      </Header>
+      </div>
       <nav className="bg-blue-500 p-4">
         <button 
           className={`mr-4 ${activeTab === 'dashboard' ? 'font-bold' : ''}`}
@@ -103,19 +102,7 @@ const App = () => {
           <ContractManagement token={token} ships={ships} />
         )}
       </main>
-      <AlertDialog>
-        <AlertDialog.Content>
-          <AlertDialog.Header>
-            <AlertDialog.Title>Error</AlertDialog.Title>
-            <AlertDialog.Description>
-              {error}
-            </AlertDialog.Description>
-          </AlertDialog.Header>
-          <AlertDialog.Footer>
-            <AlertDialog.Action onClick={() => setError(null)}>Okay</AlertDialog.Action>
-          </AlertDialog.Footer>
-        </AlertDialog.Content>
-      </AlertDialog>
+
     </div>
   );
 };
