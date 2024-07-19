@@ -202,8 +202,16 @@ export const acceptContract = async (token, contractId) => {
   return handleResponse(response);
 };
 
-export const getMarket = async (token, systemSymbol, waypointSymbol) => {
-  const response = await fetch(`${API_URL}/systems/${systemSymbol}/waypoints/${waypointSymbol}/market`, {
+export const getMarket = async (token, waypointSymbol, systemSymbol = null) => { 
+  let url = `${API_URL}/systems`;
+
+  if (systemSymbol) { 
+    url += `/${systemSymbol}`;
+  }
+
+  url += `/waypoints/${waypointSymbol}/market`;
+
+  const response = await fetch(url, {
     headers: {
       'Authorization': `Bearer ${token}`
     }

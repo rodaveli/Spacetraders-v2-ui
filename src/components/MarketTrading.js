@@ -24,9 +24,9 @@ const MarketTrading = ({ token, ships }) => {
     }
   }, [selectedShip, token]); 
 
-  const fetchMarketData = async (waypointSymbol) => {
+  const fetchMarketData = async () => {
     try {
-      const response = await getMarket(token, waypointSymbol);
+      const response = await getMarket(token, selectedShip.nav.waypointSymbol, selectedShip.nav.systemSymbol); // Pass both symbols
       setMarketData(response.data);
     } catch (err) {
       setError(err.message);
