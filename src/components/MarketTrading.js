@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getMarket, purchaseGoods, sellCargo, getShipDetails } from '../utils/api';
 
+
 const MarketTrading = ({ token, ships }) => {
   const [selectedShip, setSelectedShip] = useState(null);
   const [marketData, setMarketData] = useState(null);
