@@ -3,6 +3,8 @@ import { Header, AlertDialog } from '@/components/ui/alert';
 import { getAgentData, getContracts, getServerStatus, getShips } from './utils/api';
 import Dashboard from './components/Dashboard';
 import FleetManagement from './components/FleetManagement';
+import MarketTrading from './components/MarketTrading';
+import ContractManagement from './components/ContractManagement';
 
 const App = () => {
   const [agent, setAgent] = useState(null);
@@ -64,10 +66,22 @@ const App = () => {
           Dashboard
         </button>
         <button 
-          className={activeTab === 'fleet' ? 'font-bold' : ''}
+          className={`mr-4 ${activeTab === 'fleet' ? 'font-bold' : ''}`}
           onClick={() => setActiveTab('fleet')}
         >
           Fleet Management
+        </button>
+        <button 
+          className={`mr-4 ${activeTab === 'market' ? 'font-bold' : ''}`}
+          onClick={() => setActiveTab('market')}
+        >
+          Market Trading
+        </button>
+        <button 
+          className={activeTab === 'contracts' ? 'font-bold' : ''}
+          onClick={() => setActiveTab('contracts')}
+        >
+          Contract Management
         </button>
       </nav>
       <main className="container mx-auto p-4">
@@ -81,6 +95,12 @@ const App = () => {
         )}
         {activeTab === 'fleet' && (
           <FleetManagement token={token} />
+        )}
+        {activeTab === 'market' && (
+          <MarketTrading token={token} ships={ships} />
+        )}
+        {activeTab === 'contracts' && (
+          <ContractManagement token={token} ships={ships} />
         )}
       </main>
       <AlertDialog>
