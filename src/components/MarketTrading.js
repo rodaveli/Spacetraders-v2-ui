@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getMarket, sellCargo, purchaseGoods } from '../utils/api';
+import { getMarket, purchaseGoods, sellCargo, getShipDetails } from '../utils/api';
 
 const MarketTrading = ({ token, ships }) => {
   const [selectedShip, setSelectedShip] = useState(null);
@@ -11,9 +11,18 @@ const MarketTrading = ({ token, ships }) => {
 
   useEffect(() => {
     if (selectedShip) {
-      fetchMarketData(selectedShip.nav.waypointSymbol);
+      const fetchData = async () => {
+        try {
+          const shipDetails = await getShipDetails(token, selectedShip.symbol);
+          setSelectedShip(shipDetails.data); 
+          fetchMarketData(shipDetails.data.nav.waypointSymbol);
+        } catch (err) {
+          setError(err.message);
+        }
+      };
+      fetchData();
     }
-  }, [selectedShip]);
+  }, [selectedShip, token]); 
 
   const fetchMarketData = async (waypointSymbol) => {
     try {
@@ -23,22 +32,26 @@ const MarketTrading = ({ token, ships }) => {
       setError(err.message);
     }
   };
-const handleTransaction = async () => {
+
+  const handleTransaction = async () => {
     try {
-    if (action === 'buy') {
+      if (action === 'buy') {
         await purchaseGoods(token, selectedShip.symbol, selectedGood, amount);
-    } else {
+      } else {
         await sellCargo(token, selectedShip.symbol, selectedGood, amount);
-    }
-    // Refresh market data and ship cargo after transaction
-    fetchMarketData(selectedShip.nav.waypointSymbol);
+      }
+
+      // Refresh market and ship data after the transaction
+      fetchMarketData(selectedShip.nav.waypointSymbol); 
+      const updatedShip = await getShipDetails(token, selectedShip.symbol);
+      setSelectedShip(updatedShip.data);
+
     } catch (err) {
-    setError(err.message);
+      setError(err.message);
     }
-};
+  };
 
   if (error) return <div>Error: {error}</div>;
-  if (!marketData) return <div>Select a ship to view market data</div>;
 
   return (
     <div className="market-trading">
@@ -49,7 +62,7 @@ const handleTransaction = async () => {
         ))}
       </select>
 
-      {selectedShip && (
+      {selectedShip && selectedShip.cargo && ( 
         <div>
           <h2>Cargo for {selectedShip.symbol}</h2>
           <table>
@@ -71,46 +84,50 @@ const handleTransaction = async () => {
         </div>
       )}
 
-      <h2>Market: {marketData.symbol}</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Good</th>
-            <th>Supply</th>
-            <th>Purchase Price</th>
-            <th>Sell Price</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {marketData.tradeGoods.map(good => (
-            <tr key={good.symbol}>
-              <td>{good.symbol}</td>
-              <td>{good.supply}</td>
-              <td>{good.purchasePrice}</td>
-              <td>{good.sellPrice}</td>
-              <td>
-                <select onChange={(e) => setAction(e.target.value)}>
-                  <option value="buy">Buy</option>
-                  <option value="sell">Sell</option>
-                </select>
-                <input 
-                  type="number" 
-                  min="1" 
-                  value={amount} 
-                  onChange={(e) => setAmount(parseInt(e.target.value))}
-                />
-                <button onClick={() => {
-                  setSelectedGood(good.symbol);
-                  handleTransaction();
-                }}>
-                  {action.charAt(0).toUpperCase() + action.slice(1)}
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {marketData && (
+        <div>
+          <h2>Market: {marketData.symbol}</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Good</th>
+                <th>Supply</th>
+                <th>Purchase Price</th>
+                <th>Sell Price</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {marketData.tradeGoods.map(good => (
+                <tr key={good.symbol}>
+                  <td>{good.symbol}</td>
+                  <td>{good.supply}</td>
+                  <td>{good.purchasePrice}</td>
+                  <td>{good.sellPrice}</td>
+                  <td>
+                    <select onChange={(e) => setAction(e.target.value)}>
+                      <option value="buy">Buy</option>
+                      <option value="sell">Sell</option>
+                    </select>
+                    <input 
+                      type="number" 
+                      min="1" 
+                      value={amount} 
+                      onChange={(e) => setAmount(parseInt(e.target.value) || 1)} // Ensure a valid number
+                    />
+                    <button onClick={() => {
+                      setSelectedGood(good.symbol);
+                      handleTransaction();
+                    }}>
+                      {action.charAt(0).toUpperCase() + action.slice(1)}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };
