@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { getMarket, sellCargo } from '../utils/api';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
 const MarketTrading = ({ token, ships }) => {
   const [marketData, setMarketData] = useState(null);
@@ -86,18 +85,6 @@ const MarketTrading = ({ token, ships }) => {
               ))}
             </tbody>
           </table>
-          <div className="mt-8">
-            <h3 className="text-xl font-semibold mb-2">Price Trends</h3>
-            <LineChart width={600} height={300} data={marketData.tradeGoods}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="symbol" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="purchasePrice" stroke="#8884d8" />
-              <Line type="monotone" dataKey="sellPrice" stroke="#82ca9d" />
-            </LineChart>
-          </div>
         </div>
       )}
     </div>
