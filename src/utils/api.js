@@ -168,6 +168,18 @@ export const dockShip = async (token, shipSymbol) => {
   return handleResponse(response);
 };
 
+export const sellCargo = async (token, shipSymbol, good, units) => {
+    const response = await fetch(`${API_URL}/my/ships/${shipSymbol}/sell`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ symbol: good, units })
+    });
+    return handleResponse(response);
+  };
+  
 export const deliverContract = async (token, contractId, shipSymbol, tradeSymbol, units) => {
   const response = await fetch(`${API_URL}/my/contracts/${contractId}/deliver`, {
     method: 'POST',
@@ -190,28 +202,6 @@ export const acceptContract = async (token, contractId) => {
   return handleResponse(response);
 };
 
-export const extractResources = async (token, shipSymbol) => {
-  const response = await fetch(`${API_URL}/my/ships/${shipSymbol}/extract`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
-  });
-  return handleResponse(response);
-};
-
-export const sellCargo = async (token, shipSymbol, good, units) => {
-  const response = await fetch(`${API_URL}/my/ships/${shipSymbol}/sell`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ symbol: good, units })
-  });
-  return handleResponse(response);
-};
-
 export const getMarket = async (token, systemSymbol, waypointSymbol) => {
   const response = await fetch(`${API_URL}/systems/${systemSymbol}/waypoints/${waypointSymbol}/market`, {
     headers: {
@@ -221,11 +211,24 @@ export const getMarket = async (token, systemSymbol, waypointSymbol) => {
   return handleResponse(response);
 };
 
-export const getShipyard = async (token, systemSymbol, waypointSymbol) => {
-  const response = await fetch(`${API_URL}/systems/${systemSymbol}/waypoints/${waypointSymbol}/shipyard`, {
+export const extractResources = async (token, shipSymbol) => {
+  const response = await fetch(`${API_URL}/my/ships/${shipSymbol}/extract`, {
+    method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`
     }
   });
   return handleResponse(response);
 };
+  
+export const purchaseGoods = async (token, shipSymbol, good, units) => {
+    const response = await fetch(`${API_URL}/my/ships/${shipSymbol}/purchase`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ symbol: good, units })
+    });
+    return handleResponse(response);
+  };
