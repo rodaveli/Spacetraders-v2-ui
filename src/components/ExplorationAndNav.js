@@ -21,6 +21,12 @@ const ExplorationNavigation = ({ token }) => {
     fetchShips();
   }, []);
 
+  useEffect(() => {
+    if (selectedShip) {
+      fetchShipSystem(selectedShip.nav.systemSymbol);
+    }
+  }, [selectedShip]);
+
   const fetchSystems = async () => {
     setIsLoading(true);
     try {
@@ -38,8 +44,24 @@ const ExplorationNavigation = ({ token }) => {
     try {
       const response = await getShips(token);
       setShips(response.data);
+      if (response.data.length > 0) {
+        selectShip(response.data[0].symbol);
+      }
     } catch (error) {
       logAction('Error fetching ships: ' + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchShipSystem = async (systemSymbol) => {
+    setIsLoading(true);
+    try {
+      const response = await getSystem(token, systemSymbol);
+      setSelectedSystem(response.data);
+      fetchWaypoints(systemSymbol);
+    } catch (error) {
+      logAction('Error fetching ship system: ' + error.message);
     } finally {
       setIsLoading(false);
     }
@@ -70,27 +92,14 @@ const ExplorationNavigation = ({ token }) => {
     }
   };
 
-  const selectWaypoint = async (waypointSymbol) => {
-    setIsLoading(true);
-    try {
-      const response = await getWaypoint(token, selectedSystem.symbol, waypointSymbol);
-      setSelectedWaypoint(response.data);
-    } catch (error) {
-      logAction('Error fetching waypoint details: ' + error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const selectShip = async (shipSymbol) => {
     setIsLoading(true);
     try {
       const shipDetails = await getShips(token);
       const ship = shipDetails.data.find(s => s.symbol === shipSymbol);
       if (ship) {
-        setSelectedShip(ship);
         const navResponse = await getShipNav(token, shipSymbol);
-        setSelectedShip(prevShip => ({ ...prevShip, nav: navResponse.data }));
+        setSelectedShip({ ...ship, nav: navResponse.data });
       } else {
         throw new Error('Ship not found');
       }
@@ -101,27 +110,13 @@ const ExplorationNavigation = ({ token }) => {
     }
   };
 
-  const navigate = async () => {
-    if (!selectedShip || !selectedWaypoint) return;
-    setIsLoading(true);
-    try {
-      const response = await navigateShip(token, selectedShip.symbol, selectedWaypoint.symbol);
-      logAction(`Navigating ${selectedShip.symbol} to ${selectedWaypoint.symbol}`);
-      selectShip(selectedShip.symbol);
-    } catch (error) {
-      logAction('Navigation error: ' + error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const orbit = async () => {
+  const handleOrbit = async () => {
     if (!selectedShip) return;
     setIsLoading(true);
     try {
-      const response = await orbitShip(token, selectedShip.symbol);
+      await orbitShip(selectedShip.symbol);
       logAction(`${selectedShip.symbol} is now in orbit`);
-      selectShip(selectedShip.symbol);
+      await selectShip(selectedShip.symbol);
     } catch (error) {
       logAction('Orbit error: ' + error.message);
     } finally {
@@ -129,13 +124,13 @@ const ExplorationNavigation = ({ token }) => {
     }
   };
 
-  const dock = async () => {
+  const handleDock = async () => {
     if (!selectedShip) return;
     setIsLoading(true);
     try {
-      const response = await dockShip(token, selectedShip.symbol);
+      await dockShip(selectedShip.symbol);
       logAction(`${selectedShip.symbol} is now docked`);
-      selectShip(selectedShip.symbol);
+      await selectShip(selectedShip.symbol);
     } catch (error) {
       logAction('Docking error: ' + error.message);
     } finally {
@@ -143,13 +138,27 @@ const ExplorationNavigation = ({ token }) => {
     }
   };
 
-  const jump = async () => {
+  const handleNavigate = async () => {
     if (!selectedShip || !selectedWaypoint) return;
     setIsLoading(true);
     try {
-      const response = await jumpShip(token, selectedShip.symbol, selectedWaypoint.symbol);
-      logAction(`${selectedShip.symbol} jumped to ${selectedWaypoint.symbol}`);
-      selectShip(selectedShip.symbol);
+      await navigateShip(selectedShip.symbol, selectedWaypoint.symbol);
+      logAction(`Navigating ${selectedShip.symbol} to ${selectedWaypoint.symbol}`);
+      await selectShip(selectedShip.symbol);
+    } catch (error) {
+      logAction('Navigation error: ' + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleJump = async () => {
+    if (!selectedShip || !selectedSystem) return;
+    setIsLoading(true);
+    try {
+      await jumpShip(selectedShip.symbol, selectedSystem.symbol);
+      logAction(`${selectedShip.symbol} jumped to ${selectedSystem.symbol}`);
+      await selectShip(selectedShip.symbol);
     } catch (error) {
       logAction('Jump error: ' + error.message);
     } finally {
@@ -157,13 +166,13 @@ const ExplorationNavigation = ({ token }) => {
     }
   };
 
-  const warp = async () => {
+  const handleWarp = async () => {
     if (!selectedShip || !selectedWaypoint) return;
     setIsLoading(true);
     try {
-      const response = await warpShip(token, selectedShip.symbol, selectedWaypoint.symbol);
+      await warpShip(selectedShip.symbol, selectedWaypoint.symbol);
       logAction(`${selectedShip.symbol} warped to ${selectedWaypoint.symbol}`);
-      selectShip(selectedShip.symbol);
+      await selectShip(selectedShip.symbol);
     } catch (error) {
       logAction('Warp error: ' + error.message);
     } finally {
@@ -171,13 +180,13 @@ const ExplorationNavigation = ({ token }) => {
     }
   };
 
-  const chart = async () => {
+  const handleChart = async () => {
     if (!selectedShip) return;
     setIsLoading(true);
     try {
-      const response = await createChart(token, selectedShip.symbol);
+      const response = await createChart(selectedShip.symbol);
       logAction(`Created chart at ${selectedShip.nav.waypointSymbol}`);
-      selectWaypoint(selectedShip.nav.waypointSymbol);
+      // You might want to update the waypoint information here
     } catch (error) {
       logAction('Charting error: ' + error.message);
     } finally {
@@ -185,13 +194,13 @@ const ExplorationNavigation = ({ token }) => {
     }
   };
 
-  const scanSystem = async () => {
+  const handleScanSystem = async () => {
     if (!selectedShip) return;
     setIsLoading(true);
     try {
-      const response = await scanSystems(token, selectedShip.symbol);
+      const response = await scanSystems(selectedShip.symbol);
       logAction(`Scanned systems from ${selectedShip.symbol}`);
-      // Update systems or waypoints based on scan results
+      // You might want to update the systems information here
     } catch (error) {
       logAction('System scan error: ' + error.message);
     } finally {
@@ -199,13 +208,13 @@ const ExplorationNavigation = ({ token }) => {
     }
   };
 
-  const scanWaypoint = async () => {
+  const handleScanWaypoint = async () => {
     if (!selectedShip) return;
     setIsLoading(true);
     try {
-      const response = await scanWaypoints(token, selectedShip.symbol);
+      const response = await scanWaypoints(selectedShip.symbol);
       logAction(`Scanned waypoints from ${selectedShip.symbol}`);
-      // Update waypoints based on scan results
+      // You might want to update the waypoints information here
     } catch (error) {
       logAction('Waypoint scan error: ' + error.message);
     } finally {
@@ -213,13 +222,13 @@ const ExplorationNavigation = ({ token }) => {
     }
   };
 
-  const refuel = async () => {
+  const handleRefuel = async () => {
     if (!selectedShip) return;
     setIsLoading(true);
     try {
-      const response = await refuelShip(token, selectedShip.symbol);
+      await refuelShip(selectedShip.symbol);
       logAction(`Refueled ${selectedShip.symbol}`);
-      selectShip(selectedShip.symbol);
+      await selectShip(selectedShip.symbol);
     } catch (error) {
       logAction('Refuel error: ' + error.message);
     } finally {
@@ -237,25 +246,17 @@ const ExplorationNavigation = ({ token }) => {
       
       <div className="systems-panel">
         <h3>Systems</h3>
-        <select onChange={(e) => selectSystem(e.target.value)} disabled={isLoading}>
+        <select 
+          onChange={(e) => selectSystem(e.target.value)} 
+          disabled={isLoading}
+          value={selectedSystem?.symbol || ''}
+        >
           <option value="">Select a system</option>
           {systems.map(system => (
             <option key={system.symbol} value={system.symbol}>{system.symbol}</option>
           ))}
         </select>
       </div>
-
-      {selectedSystem && (
-        <div className="waypoints-panel">
-          <h3>Waypoints in {selectedSystem.symbol}</h3>
-          <select onChange={(e) => selectWaypoint(e.target.value)} disabled={isLoading}>
-            <option value="">Select a waypoint</option>
-            {waypoints.map(waypoint => (
-              <option key={waypoint.symbol} value={waypoint.symbol}>{waypoint.symbol}</option>
-            ))}
-          </select>
-        </div>
-      )}
 
       <div className="ships-panel">
         <h3>Ships</h3>
@@ -273,23 +274,24 @@ const ExplorationNavigation = ({ token }) => {
           <p>Status: {selectedShip.nav?.status}</p>
           <p>Location: {selectedShip.nav?.waypointSymbol}</p>
           <p>Fuel: {selectedShip.fuel?.current}/{selectedShip.fuel?.capacity}</p>
-          <button onClick={orbit} disabled={isLoading || selectedShip.nav?.status !== 'DOCKED'}>Orbit</button>
-          <button onClick={dock} disabled={isLoading || selectedShip.nav?.status !== 'IN_ORBIT'}>Dock</button>
-          <button onClick={navigate} disabled={isLoading || selectedShip.nav?.status !== 'IN_ORBIT' || !selectedWaypoint}>Navigate</button>
-          <button onClick={jump} disabled={isLoading || selectedShip.nav?.status !== 'IN_ORBIT' || !selectedWaypoint}>Jump</button>
-          <button onClick={warp} disabled={isLoading || selectedShip.nav?.status !== 'IN_ORBIT' || !selectedWaypoint}>Warp</button>
-          <button onClick={chart} disabled={isLoading}>Chart</button>
-          <button onClick={scanSystem} disabled={isLoading}>Scan System</button>
-          <button onClick={scanWaypoint} disabled={isLoading}>Scan Waypoint</button>
-          <button onClick={refuel} disabled={isLoading || selectedShip.nav?.status !== 'DOCKED'}>Refuel</button>
+          <button onClick={handleOrbit} disabled={isLoading || selectedShip.nav?.status !== 'DOCKED'}>Orbit</button>
+          <button onClick={handleDock} disabled={isLoading || selectedShip.nav?.status !== 'IN_ORBIT'}>Dock</button>
+          <button onClick={handleNavigate} disabled={isLoading || selectedShip.nav?.status !== 'IN_ORBIT' || !selectedWaypoint}>Navigate</button>
+          <button onClick={handleJump} disabled={isLoading || selectedShip.nav?.status !== 'IN_ORBIT' || !selectedSystem}>Jump</button>
+          <button onClick={handleWarp} disabled={isLoading || selectedShip.nav?.status !== 'IN_ORBIT' || !selectedWaypoint}>Warp</button>
+          <button onClick={handleChart} disabled={isLoading}>Chart</button>
+          <button onClick={handleScanSystem} disabled={isLoading}>Scan System</button>
+          <button onClick={handleScanWaypoint} disabled={isLoading}>Scan Waypoint</button>
+          <button onClick={handleRefuel} disabled={isLoading || selectedShip.nav?.status !== 'DOCKED'}>Refuel</button>
         </div>
       )}
 
-      {selectedWaypoint && (
-        <div className="waypoint-info">
-          <h3>{selectedWaypoint.symbol}</h3>
-          <p>Type: {selectedWaypoint.type}</p>
-          {/* Display more waypoint information here */}
+      {selectedSystem && (
+        <div className="system-info">
+          <h3>System Information: {selectedSystem.symbol}</h3>
+          <p>Type: {selectedSystem.type}</p>
+          <p>Sector: {selectedSystem.sectorSymbol}</p>
+          <p>Position: X: {selectedSystem.x}, Y: {selectedSystem.y}</p>
         </div>
       )}
 
