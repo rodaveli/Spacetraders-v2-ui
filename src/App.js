@@ -5,6 +5,7 @@ import Dashboard from './components/Dashboard';
 import FleetManagement from './components/FleetManagement';
 import MarketTrading from './components/MarketTrading';
 import ContractManagement from './components/ContractManagement';
+import ExplorationAndNav from './components/ExplorationAndNav'; // Import the new component
 
 const App = () => {
   const [agent, setAgent] = useState(null);
@@ -78,10 +79,16 @@ const App = () => {
           Market Trading
         </button>
         <button 
-          className={activeTab === 'contracts' ? 'font-bold' : ''}
+          className={`mr-4 ${activeTab === 'contracts' ? 'font-bold' : ''}`}
           onClick={() => setActiveTab('contracts')}
         >
           Contract Management
+        </button>
+        <button 
+          className={`mr-4 ${activeTab === 'exploration' ? 'font-bold' : ''}`}
+          onClick={() => setActiveTab('exploration')}
+        >
+          Exploration & Navigation
         </button>
       </nav>
       <main className="container mx-auto p-4">
@@ -102,8 +109,10 @@ const App = () => {
         {activeTab === 'contracts' && (
           <ContractManagement token={token} ships={ships} />
         )}
+        {activeTab === 'exploration' && (
+          <ExplorationAndNav token={token} ships={ships} />
+        )}
       </main>
-
     </div>
   );
 };

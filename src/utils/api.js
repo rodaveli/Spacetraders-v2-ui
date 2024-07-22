@@ -64,7 +64,56 @@ export const getShipDetails = async (shipSymbol) => {
     handleError(error);
   }
 };
+// ... (existing imports and setup)
 
+// Add these new functions:
+
+export const jumpShip = async (shipSymbol, systemSymbol) => {
+  try {
+    const response = await api.post(`/my/ships/${shipSymbol}/jump`, { systemSymbol });
+    return response.data;
+  } catch (error) {
+    handleError(error);
+  }
+};
+
+export const warpShip = async (shipSymbol, waypointSymbol) => {
+  try {
+    const response = await api.post(`/my/ships/${shipSymbol}/warp`, { waypointSymbol });
+    return response.data;
+  } catch (error) {
+    handleError(error);
+  }
+};
+
+export const createChart = async (shipSymbol) => {
+  try {
+    const response = await api.post(`/my/ships/${shipSymbol}/chart`);
+    return response.data;
+  } catch (error) {
+    handleError(error);
+  }
+};
+
+export const scanSystems = async (shipSymbol) => {
+  try {
+    const response = await api.post(`/my/ships/${shipSymbol}/scan/systems`);
+    return response.data;
+  } catch (error) {
+    handleError(error);
+  }
+};
+
+export const scanWaypoints = async (shipSymbol) => {
+  try {
+    const response = await api.post(`/my/ships/${shipSymbol}/scan/waypoints`);
+    return response.data;
+  } catch (error) {
+    handleError(error);
+  }
+};
+
+// ... (rest of the existing file)
 export const purchaseShip = async (shipType, waypointSymbol) => {
   try {
     const response = await api.post('/my/ships', { shipType, waypointSymbol });
